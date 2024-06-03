@@ -46,7 +46,6 @@ Route::middleware('auth:sanctum')->group(function ()
 });
 //f*ck postman
 
-
 Route::controller(AuthController::class)->group(function(){
     Route::post('register', 'register');
     Route::post('login_as_customer', 'login_as_customer');
