@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+
 
 
 class AuthController extends Controller
@@ -12,9 +14,13 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
+            'fullname' => 'required|string',
             'username' => 'required|string',
             'email' => 'required|string',
-            'password' => 'required|string|min:8'
+            'password' => 'required|string|min:8',
+            'profileImage' => 'image|mimes:jpg,png',
+            'id_image' => 'image|mimes:jpg,png',
+            'type' => 'required|string'
         ]);
 
         if(!$data)
@@ -33,10 +39,24 @@ class AuthController extends Controller
         }
 
         $newUser = User::create([
+            'fullname' => $data['fullname'],
             'username' => $data['username'],
             'email' => $data['email'],
-            'password' => Hash::make($data['password'])
+            'password' => Hash::make($data['password']),
+            'type' => $data['type']
         ]);
+
+        //storing the seller id image if the user type is seller
+        if($newUser->type == 'Seller'){
+            $imageName = $request->fullname.'.'.$request->id_image->getClientOriginalExtension();
+            Storage::disk('seller_id')->put($imageName, file_get_contents($request->id_image));
+        }
+
+        //storing the profile image if he uploads it
+        if($request->profileImage){
+            $imageName = $request->profileImage.'.'.$request->id_image->getClientOriginalExtension();
+            Storage::disk('user_profile')->put($imageName, file_get_contents($request->profileImage));
+        }
 
         if($newUser)
         {

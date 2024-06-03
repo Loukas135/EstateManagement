@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Estate;
+use App\Models\EstateImage;
+use App\Models\PropertyImage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EstateController extends Controller
 {
     public function add(Request $request)
     {
         $data = $request->validate([
+            'category' => 'required|string',
             'description' => 'required|string|max:255',
             'city' => 'required|string',
             'street' => 'required|string',
@@ -17,13 +21,19 @@ class EstateController extends Controller
             'longitude' => 'required',
             'space' => 'required',
             'price' => 'required',
-            'number_of_rooms' => 'required'
+            'number_of_rooms' => 'required',
         ]);
-        if($data)
-        {
-            $user = $request->user();
 
+        $images = $request->validate([
+            'images.*' => 'image|mimes:png,jpg',
+            'property.*' => 'image|mimes:png,jpg',
+        ]);
+
+        if($data && $images)
+        {
+            $currentUser = $request->user();
             $newEstate = Estate::create([
+                'category' => $data['category'],
                 'description' => $data['description'],
                 'city' => $data['city'],
                 'street' => $data['street'],
@@ -32,22 +42,46 @@ class EstateController extends Controller
                 'space' => $data['space'],
                 'price' => $data['price'],
                 'number_of_rooms' => $data['number_of_rooms'],
-                'user_id' => $user->id
+                'user_id' => $currentUser->id,
             ]);
-
+            
             if($newEstate){
                 $newEstate->save();
+
+                foreach($request->images as $img)
+                {
+                    $imageName = time().'.'.$img->getClientOriginalExtension();
+                    Storage::disk('estate_images')->put($imageName, file_get_contents($img));
+                    //$img->storeAs('estate_images', $imageName);    
+                    //the right above might be the right one (f*ck postman);
+                    EstateImage::create([
+                        'estate_id' => $newEstate->id,
+                        'user_id' => $currentUser->id,
+                        'image_path' => 'public/storage/estate_images'.$imageName
+                    ]);
+                }
+    
+                foreach($request->property as $property)
+                {
+                    $imageName = time().'.'.$property->getClientOriginalExtension();
+                    Storage::disk('property_images')->put($imageName, file_get_contents($property));
+                    //$img->storeAs('estate_images', $imageName);    
+    
+                    PropertyImage::create([
+                        'estate_id' => $newEstate->id,
+                        'user_id' => $currentUser->id,
+                        'image_path' => 'public/storage/property_images'.$imageName
+                    ]);
+                }
+
                 return response()->json([
                     'message' => 'Estate has been added',
                     'estate' => $newEstate
                 ], 201);
-
             }else{
-
                 return response()->json([
                     'message' => 'something went wrong'
                 ], 500);
-
             }
         }
 
@@ -135,7 +169,7 @@ class EstateController extends Controller
 
     public function filter_by_things($things, $number_of_things)
     {
-        $estates = Estate::where($things, $number_of_things);
+        $estates = Estate::where($things, $number_of_things)->get();
         if($estates)
         {
             return response()->json([

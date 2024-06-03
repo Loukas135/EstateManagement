@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('estates', function (Blueprint $table) {
             $table->id();
             $table->string('description');
+            $table->enum('category', ['Farm', 'Appartment', 'House']);
             $table->string('city');
             $table->string('street');
             $table->float('latitude');

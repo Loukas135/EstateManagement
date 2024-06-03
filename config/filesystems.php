@@ -44,6 +44,26 @@ return [
             'throw' => false,
         ],
 
+        'estate_images' => [
+            'driver' => 'local',
+            'root' => storage_path('public/storage/estate_images')
+        ],
+
+        'seller_id' => [
+            'driver' => 'local',
+            'root' => storage_path('public/storage/seller_id')
+        ],
+
+        'user_profile' => [
+            'driver' => 'local',
+            'root' => storage_path('public/storage/user_profile')
+        ],
+
+        'property_images' => [
+            'driver' => 'local',
+            'root' => storage_path('public/storage/property_images')
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

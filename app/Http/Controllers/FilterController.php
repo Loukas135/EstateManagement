@@ -102,4 +102,5 @@ class FilterController extends Controller
             'message' => 'No results'
         ], 404);
     }
+
 }

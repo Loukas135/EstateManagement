@@ -26,4 +26,9 @@ class Estate extends Model
     {
         return $this->hasMany(EstateImage::class);
     }
+
+    public function property_images() : HasMany
+    {
+        return $this->hasMany(PropertyImage::class);
+    }
 }
