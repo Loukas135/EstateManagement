@@ -43,6 +43,11 @@ Route::middleware('auth:sanctum')->group(function ()
         //not sure about the url form
         Route::get('estates/get/min={min},max={max}');
     });
+
+    Route::post('extras/add', 'add')->middleware('role.admin');
+    Route::get('extras/get/{id}', 'get_by_id');
+    Route::get('extras/get', 'get');
+    Route::put('extras/update/{id}', 'update')->middleware('role.admin');
 });
 //f*ck postman
 
