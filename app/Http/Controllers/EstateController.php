@@ -132,4 +132,20 @@ class EstateController extends Controller
             'estates' => $sellerEstates
         ], 200);
     }
+
+    public function filter_by_things($things, $number_of_things)
+    {
+        $estates = Estate::where($things, $number_of_things);
+        if($estates)
+        {
+            return response()->json([
+                'message' => 'Here are the results',
+                'estates' => $estates
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'No results'
+        ], 404);
+    }
 }

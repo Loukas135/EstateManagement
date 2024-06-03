@@ -79,7 +79,7 @@ class AuthController extends Controller
     public function login_as_customer(Request $request)
     {
         $credentials = $request->validate([
-            'username' => 'required|string',
+            'email' => 'required|string',
             'password' => 'required|string'
         ]);
 
@@ -89,7 +89,7 @@ class AuthController extends Controller
             ], 400);
         }
 
-        $user = User::firstWhere('username', $credentials['username']);
+        $user = User::firstWhere('email', $credentials['email']);
         
         if(!$user || !Hash::check($request->password, $user->password))
         {
@@ -109,7 +109,7 @@ class AuthController extends Controller
     public function login_as_admin(Request $request)
     {
         $credentials = $request->validate([
-            'username' => 'required|string',
+            'email' => 'required|string',
             'password' => 'required|string'
         ]);
 
@@ -119,7 +119,7 @@ class AuthController extends Controller
             ], 400);
         }
 
-        $user = User::firstWhere('username', $credentials['username']);
+        $user = User::firstWhere('email', $credentials['email']);
         
         if(!$user || !Hash::check($request->password, $user->password))
         {

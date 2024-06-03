@@ -20,7 +20,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-
 Route::middleware('auth:sanctum')->group(function ()
 {
     Route::controller(EstateController::class)->group(function()
@@ -31,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function ()
         Route::get('estates/get', 'get_all');
         Route::get('estates/show_seller_estates', 'show_seller_estates')->middleware('role.seller');
         Route::delete('estates/delete/{id}', 'delete')->middleware('role.seller');
+        //things(rooms, bedrooms, bathrooms, garages, ...) and the their number
+        Route::get('estates/get/?{things}={number_of_things}', 'filter_by_things');
     });
 });
 

@@ -5,9 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Address extends Model
+class EstateImage extends Model
 {
     use HasFactory;
-    protected $city;
-    protected $street;
+
+    protected $guarded = [
+        'created_at',
+        'updated_at'
+    ];
+
 }
