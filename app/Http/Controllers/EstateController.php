@@ -22,6 +22,9 @@ class EstateController extends Controller
             'space' => 'required',
             'price' => 'required',
             'number_of_rooms' => 'required',
+            'bathrooms' => 'required',
+            'garages' => 'required',
+            'title' => 'required|string'
         ]);
 
         $images = $request->validate([
@@ -29,8 +32,7 @@ class EstateController extends Controller
             'property.*' => 'image|mimes:png,jpg',
         ]);
 
-        if($data && $images)
-        {
+        if ($data && $images) {
             $currentUser = $request->user();
             $newEstate = Estate::create([
                 'category' => $data['category'],
@@ -43,34 +45,31 @@ class EstateController extends Controller
                 'price' => $data['price'],
                 'number_of_rooms' => $data['number_of_rooms'],
                 'user_id' => $currentUser->id,
+                'bathrooms' => $data['bathrooms'],
+                'garages' => $data['garages'],
+                'title' => $data['title'],
             ]);
-            
-            if($newEstate){
+
+            if ($newEstate) {
                 $newEstate->save();
 
-                foreach($request->images as $img)
-                {
-                    $imageName = time().'.'.$img->getClientOriginalExtension();
+                foreach ($request->images as $img) {
+                    $imageName = $img->hashName();
                     Storage::disk('estate_images')->put($imageName, file_get_contents($img));
-                    //$img->storeAs('estate_images', $imageName);    
-                    //the right above might be the right one (f*ck postman);
                     EstateImage::create([
                         'estate_id' => $newEstate->id,
                         'user_id' => $currentUser->id,
-                        'image_path' => 'public/storage/estate_images'.$imageName
+                        'image_path' => Storage::disk('estate_images')->url($imageName),
                     ]);
                 }
-    
-                foreach($request->property as $property)
-                {
-                    $imageName = time().'.'.$property->getClientOriginalExtension();
+
+                foreach ($request->property as $property) {
+                    $imageName = $property->hashName();
                     Storage::disk('property_images')->put($imageName, file_get_contents($property));
-                    //$img->storeAs('estate_images', $imageName);    
-    
                     PropertyImage::create([
                         'estate_id' => $newEstate->id,
                         'user_id' => $currentUser->id,
-                        'image_path' => 'public/storage/property_images'.$imageName
+                        'image_path' => Storage::disk('property_images')->url($imageName),
                     ]);
                 }
 
@@ -78,7 +77,7 @@ class EstateController extends Controller
                     'message' => 'Estate has been added',
                     'estate' => $newEstate
                 ], 201);
-            }else{
+            } else {
                 return response()->json([
                     'message' => 'something went wrong'
                 ], 500);
@@ -99,21 +98,85 @@ class EstateController extends Controller
         ], 204);
     }
 
-    public function get_all()
+    public function get_all(Request $request)
     {
-        $estates = Estate::get();
-        if($estates){
-            return response()->json([
-                'message' => 'Estates retrived succesfully',
-                'estate' => $estates
-            ], 200);
+
+        $query = Estate::query();
+
+        // Apply search based on description, city, and street
+        if ($request->has('q')) {
+            $searchTerm = $request->input('q');
+            $query->where(function ($query) use ($searchTerm) {
+                $query->where('description', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('city', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('street', 'like', '%' . $searchTerm . '%');
+            });
         }
+
+        // Apply filters based on the request parameters
+        if ($request->has('category')) {
+            $query->where('category', $request->input('category'));
+        }
+
+        if ($request->has('city')) {
+            $query->where('city', 'like', '%' . $request->input('city') . '%');
+        }
+
+        if ($request->has('min_price')) {
+            $query->where('price', '>=', $request->input('min_price'));
+        }
+
+        if ($request->has('max_price')) {
+            $query->where('price', '<=', $request->input('max_price'));
+        }
+
+        if ($request->has('min_space')) {
+            $query->where('space', '>=', $request->input('min_space'));
+        }
+
+        if ($request->has('max_space')) {
+            $query->where('space', '<=', $request->input('max_space'));
+        }
+
+        if ($request->has('min_rooms')) {
+            $query->where('number_of_rooms', '>=', $request->input('min_rooms'));
+        }
+
+        if ($request->has('max_rooms')) {
+            $query->where('number_of_rooms', '<=', $request->input('max_rooms'));
+        }
+
+        if ($request->has('min_bathrooms')) {
+            $query->where('bathrooms', '>=', $request->input('min_bathrooms'));
+        }
+
+        if ($request->has('max_bathrooms')) {
+            $query->where('bathrooms', '<=', $request->input('max_bathrooms'));
+        }
+
+        if ($request->has('min_garages')) {
+            $query->where('garages', '>=', $request->input('min_garages'));
+        }
+
+        if ($request->has('max_garages')) {
+            $query->where('garages', '<=', $request->input('max_garages'));
+        }
+
+        if ($request->has('active')) {
+            $query->where('active', $request->input('active'));
+        }
+        $estates = $query->with("estate_images")->get();
+
+        return response()->json([
+            'message' => 'Estates retrived succesfully',
+            'estates' => $estates
+        ], 200);
     }
 
     public function get_by_id($id)
     {
-        $estate = Estate::find($id);
-        if($estate){
+        $estate = Estate::with("estate_images", "user")->find($id);
+        if ($estate) {
             return response()->json([
                 'message' => 'Estate retrived succesfully',
                 'estate' => $estate
@@ -134,22 +197,20 @@ class EstateController extends Controller
             'number_of_rooms' => 'required'
         ]);
 
-        if($data){
+        if ($data) {
             $updated = $estate->update($data);
 
-            if($updated){
+            if ($updated) {
 
                 return response()->json([
                     'message' => 'Updated',
                     'new estate' => $updated
-                ]); 
-
+                ]);
             }
 
             return response()->json([
                 'message' => 'Something went wrong'
-            ], 500); 
-
+            ], 500);
         }
 
         return response()->json([
@@ -165,21 +226,5 @@ class EstateController extends Controller
             'message' => 'seller\'s estates',
             'estates' => $sellerEstates
         ], 200);
-    }
-
-    public function filter_by_things($things, $number_of_things)
-    {
-        $estates = Estate::where($things, $number_of_things)->get();
-        if($estates)
-        {
-            return response()->json([
-                'message' => 'Here are the results',
-                'estates' => $estates
-            ], 200);
-        }
-
-        return response()->json([
-            'message' => 'No results'
-        ], 404);
     }
 }

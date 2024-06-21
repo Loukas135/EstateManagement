@@ -13,7 +13,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    public function estates() : HasMany
+    public function estates(): HasMany
     {
         return $this->hasMany(Estate::class);
     }
@@ -25,7 +25,6 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'fullname',
-        'username',
         'email',
         'password',
         'profile_image',
@@ -33,10 +32,11 @@ class User extends Authenticatable
         'type'
     ];
 
+    protected $hidden = ['password'];
+
     protected $guarded = [
         'created_at',
-        'updated_at'
+        'updated_at',
+
     ];
-
-
 }

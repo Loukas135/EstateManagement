@@ -21,7 +21,6 @@ return new class extends Migration
             $table->float('longitude');
             $table->float('space');
             $table->integer('number_of_rooms');
-            $table->integer('bedrooms');
             $table->integer('bathrooms');
             $table->integer('garages');
             $table->float('price');

@@ -15,74 +15,77 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'fullname' => 'required|string',
-            'username' => 'required|string',
             'email' => 'required|string',
             'password' => 'required|string|min:8',
-            'profileImage' => 'image|mimes:jpg,png',
-            'id_image' => 'image|mimes:jpg,png',
+            'profileImage' => 'image',
+            'id_image' => 'image',
             'type' => 'required|string'
         ]);
 
-        if(!$data)
-        {
+        if (!$data) {
             return response()->json([
                 'message' => 'invalid data'
             ], 400);
         }
 
-        if(User::firstWhere('email', $data['email']
-           || User::firstWhere('username', $data['username'])))
-        {
+        if (User::firstWhere('email', $data['email'])) {
             return response()->json([
                 'message' => 'user already exists'
             ], 400);
         }
 
+        $profileImagePath = null;
+        $idImagePath = null;
+
+        // Storing the seller ID image if the user type is seller
+        if ($request->hasFile('id_image') && $data['type'] == 'Seller') {
+            $idImageName = $request->file('id_image')->hashName();
+            Storage::disk('seller_id')->put($idImageName, file_get_contents($request->file('id_image')));
+            $idImagePath = Storage::disk('seller_id')->url($idImageName);
+        }
+
+
+        if ($request->hasFile('profileImage')) {
+            $profileImageName = $request->file('profileImage')->hashName();
+            Storage::disk('user_profile')->put($profileImageName, file_get_contents($request->file('profileImage')));
+            $profileImagePath = Storage::disk('user_profile')->url($profileImageName);
+        }
+
+
         $newUser = User::create([
             'fullname' => $data['fullname'],
-            'username' => $data['username'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'profile_image' => $profileImagePath,
+            'id_image' => $idImagePath,
             'type' => $data['type']
         ]);
 
-        //storing the seller id image if the user type is seller
-        if($newUser->type == 'Seller'){
-            $imageName = $request->fullname.'.'.$request->id_image->getClientOriginalExtension();
-            Storage::disk('seller_id')->put($imageName, file_get_contents($request->id_image));
-        }
-
-        //storing the profile image if he uploads it
-        if($request->profileImage){
-            $imageName = $request->profileImage.'.'.$request->id_image->getClientOriginalExtension();
-            Storage::disk('user_profile')->put($imageName, file_get_contents($request->profileImage));
-        }
-
-        if($newUser)
-        {
+        if ($newUser) {
             return response()->json([
                 'message' => 'user has been created',
-                'new user' => $newUser
+                'user' => $newUser
             ], 201);
         }
     }
 
+
+
     public function login_as_seller(Request $request)
     {
         $credentials = $request->validate([
-            'username' => 'required|string',
+            'email' => 'required|string',
             'password' => 'required|string'
         ]);
 
-        if(!$credentials){
+        if (!$credentials) {
             return response()->json([
                 'message' => 'Invalid data'
             ], 400);
         }
 
-        $user = User::firstWhere('username', $credentials['username']);
-        if(!$user || !Hash::check($request->password, $user->password))
-        {
+        $user = User::firstWhere('email', $credentials['email']);
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'Wrong credentials'
             ], 400);
@@ -92,6 +95,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'logged in successfuly',
+            'user' => $user,
             'token' => $token->plainTextToken
         ], 200);
     }
@@ -103,16 +107,15 @@ class AuthController extends Controller
             'password' => 'required|string'
         ]);
 
-        if(!$credentials){
+        if (!$credentials) {
             return response()->json([
                 'message' => 'Invalid data'
             ], 400);
         }
 
         $user = User::firstWhere('email', $credentials['email']);
-        
-        if(!$user || !Hash::check($request->password, $user->password))
-        {
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'Wrong credentials'
             ], 400);
@@ -122,7 +125,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'logged in successfuly',
-            'access token' => $token->plainTextToken
+            'user' => $user,
+            'token' => $token->plainTextToken
         ], 200);
     }
 
@@ -133,16 +137,15 @@ class AuthController extends Controller
             'password' => 'required|string'
         ]);
 
-        if(!$credentials){
+        if (!$credentials) {
             return response()->json([
                 'message' => 'Invalid data'
             ], 400);
         }
 
         $user = User::firstWhere('email', $credentials['email']);
-        
-        if(!$user || !Hash::check($request->password, $user->password))
-        {
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'Wrong credentials'
             ], 400);

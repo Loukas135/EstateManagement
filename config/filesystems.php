@@ -39,29 +39,38 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
             'throw' => false,
         ],
 
         'estate_images' => [
             'driver' => 'local',
-            'root' => storage_path('public/storage/estate_images')
+            'root' => storage_path('app/public/estate_images'),
+            'url' => env('APP_URL') . '/storage/estate_images',
+            'visibility' => 'public',
         ],
+
 
         'seller_id' => [
             'driver' => 'local',
-            'root' => storage_path('public/storage/seller_id')
+            'root' => storage_path('app/public/seller_id'),
+            'url' => env('APP_URL') . '/storage/seller_id',
+            'visibility' => 'public',
         ],
 
         'user_profile' => [
             'driver' => 'local',
-            'root' => storage_path('public/storage/user_profile')
+            'root' => storage_path('app/public/user_profile'),
+            'url' => env('APP_URL') . '/storage/user_profile',
+            'visibility' => 'public',
         ],
 
         'property_images' => [
             'driver' => 'local',
-            'root' => storage_path('public/storage/property_images')
+            'root' => storage_path('app/public/property_images'),
+            'url' => env('APP_URL') . '/storage/property_images',
+            'visibility' => 'public',
         ],
 
         's3' => [
