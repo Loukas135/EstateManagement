@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Extra;
+use Illuminate\Support\Facades\Storage;
 
 class ExtraController extends Controller
 {
@@ -15,21 +16,21 @@ class ExtraController extends Controller
             'contact_number' => 'required|string',
             'address' => 'required|string',
             'description' => 'required|string',
+            'image'  => 'required|image'
         ]);
 
-        if($data){
-            $extra = Extra::create([
-                'category' => $data['category'],
-                'name' => $data['name'],
-                'contact_number' => $data['contact_number'],
-                'address' => $data['address'],
-                'description' => $data['description']
-            ]);
+        if ($data) {
+            if ($request->hasFile('image')) {
+                $imageName = $request->image->hashName();
+                Storage::disk('extra_images')->put($imageName, file_get_contents($request->image));
+                $data['image'] = Storage::disk('extra_images')->url($imageName);
+            }
+            $extra = Extra::create($data);
 
-            if($extra){
+            if ($extra) {
                 return response()->json([
                     'message' => 'Added successfuly',
-                    'extra' => $extra
+                    'data' => $extra
                 ], 200);
             }
             return response()->json([
@@ -43,8 +44,8 @@ class ExtraController extends Controller
 
     public function get_all()
     {
-        $extras = Extra::get();
-        if($extras){
+        $extras = Extra::all();
+        if ($extras) {
             return response()->json([
                 'message' => 'Here are the extras',
                 'extras' => $extras
@@ -55,7 +56,7 @@ class ExtraController extends Controller
     public function get_by_id($id)
     {
         $extra = Extra::find($id)->first();
-        if($extra){
+        if ($extra) {
             return response()->json([
                 'message' => 'Here is the extra',
                 'extras' => $extra
@@ -76,27 +77,24 @@ class ExtraController extends Controller
             'number_of_rooms' => 'required'
         ]);
 
-        if($data){
+        if ($data) {
             $updated = $extra->update($data);
 
-            if($updated){
+            if ($updated) {
 
                 return response()->json([
                     'message' => 'Updated',
                     'new estate' => $updated
-                ]); 
-
+                ]);
             }
 
             return response()->json([
                 'message' => 'Something went wrong'
-            ], 500); 
-
+            ], 500);
         }
 
         return response()->json([
             'message' => 'Bad request'
         ], 400);
     }
-    
 }

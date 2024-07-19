@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('extras', function (Blueprint $table) {
+        Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->enum('category', ['Appraiser', 'Shipping', 'Maintenance', 'Engineering']);
-            $table->string('name');
-            $table->string('contact_number');
-            $table->string('address');
-            $table->string('description');
-            $table->string('image');
+            $table->foreignId('chat_id')->constrained('chats')->onDelete('cascade');
+            $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
+            $table->text('message');
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('extras');
+        Schema::dropIfExists('messages');
     }
 };

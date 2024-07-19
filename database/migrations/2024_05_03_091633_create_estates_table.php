@@ -26,6 +26,7 @@ return new class extends Migration
             $table->float('price');
             $table->unsignedBigInteger('user_id');
             $table->boolean('active')->default(false);
+            $table->boolean('sold')->default(false);
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

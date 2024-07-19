@@ -16,8 +16,7 @@ class CheckSellerRole
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if($user->tokenCan('role:seller'))
-        {
+        if ($user->tokenCan('role:seller')) {
             return $next($request);
         }
         return response()->json([

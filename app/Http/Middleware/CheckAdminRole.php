@@ -16,8 +16,7 @@ class CheckAdminRole
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if($user->canToken('role:admin'))
-        {
+        if ($user->tokenCan('role:admin')) {
             return $next($request);
         }
         return response()->json([

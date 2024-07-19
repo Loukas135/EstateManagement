@@ -20,10 +20,10 @@ class AdminController extends Controller
 
     public function show_unapproved()
     {
-        $estates = Estate::where('active', false);
+        $estates = Estate::with(["estate_images", "property_images"])->where('active', false)->get();
         return response()->json([
-            'message' => 'these are the unapproved',
-            'estates' => $estates
+            'message' => 'success',
+            'data' => $estates
         ], 200);
     }
 }
