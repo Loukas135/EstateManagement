@@ -58,7 +58,6 @@ class EstateController extends Controller
                     Storage::disk('estate_images')->put($imageName, file_get_contents($img));
                     EstateImage::create([
                         'estate_id' => $newEstate->id,
-                        'user_id' => $currentUser->id,
                         'image_path' => Storage::disk('estate_images')->url($imageName),
                     ]);
                 }
@@ -68,7 +67,6 @@ class EstateController extends Controller
                     Storage::disk('property_images')->put($imageName, file_get_contents($property));
                     PropertyImage::create([
                         'estate_id' => $newEstate->id,
-                        'user_id' => $currentUser->id,
                         'image_path' => Storage::disk('property_images')->url($imageName),
                     ]);
                 }
@@ -101,7 +99,7 @@ class EstateController extends Controller
     public function get_all(Request $request)
     {
 
-        $query = Estate::query();
+        $query = Estate::query()->where('active', true)->where('sold', false);
 
 
         if ($request->has('q')) {

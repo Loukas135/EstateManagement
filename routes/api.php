@@ -52,7 +52,7 @@ Route::controller(AuthController::class)->group(function () {
 
 
 Route::controller(EstateController::class)->middleware('auth:sanctum', 'role.admin')->group(function () {
-    Route::put('estate/approve', 'approve');
+    Route::put('estate/{id}/approve', 'approve');
     Route::get('estate/show_unapproved', 'show_unapproved');
 });
 
