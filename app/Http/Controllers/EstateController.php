@@ -183,8 +183,6 @@ class EstateController extends Controller
     public function update(Request $request, $id)
     {
         $estate = Estate::find($id);
-
-
         $data = $request->validate([
             'description' => 'required|string|max:255',
             'category' => 'required|in:Farm,Appartment,House',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Extra;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -69,9 +70,76 @@ class AuthController extends Controller
         }
     }
 
+    public function register_service(Request $request)
+    {
+        $data = $request->validate([
+            'fullname' => 'required|string',
+            'email' => 'required|string',
+            'password' => 'required|string|min:8',
+            'profileImage' => 'image',
+            'id_image' => 'image',
+            'type' => 'required|string',
+
+            'category_id' => 'required',
+            'name' => 'required|string',
+            'contact_number' => 'required|string',
+            'address' => 'required|string',
+            'description' => 'required|string',
+            'image'  => 'image',
+            'user_id' => 'required'
+        ]); 
+        //dd($data);
+
+        if($data){
+            $ownerData = [
+                'fullname' => $data['fullname'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+                //'profileImage' => $data['profileImage'],
+                //'id_image' => $data['id_image'],
+                'type' => $data['type'],
+            ];
+
+            $serviceData = [
+                'category_id' => $data['category_id'],
+                'name' => $data['name'],
+                'contact_number' => $data['contact_number'],
+                'address' => $data['address'],
+                'description' => $data['description'],
+                //'image' => $data['image'],
+                'user_id' => 0
+            ];
+
+            if($ownerData){
+                $newServiceOwner = User::create($ownerData);
+                
+                if($serviceData){
+                    $serviceData['user_id'] = $newServiceOwner->id;
+                    $newService = Extra::create($serviceData);
+
+                    if($newService){
+                        return response()->json([
+                            'message' => 'service_and_service_owner_created'
+                        ], 201);
+                    }
+                }
+            }
+
+            if ($request->hasFile('image')) {
+                 $imageName = $request->image->hashName();
+                 Storage::disk('extra_images')->put($imageName, file_get_contents($request->image));
+                 $data['image'] = Storage::disk('extra_images')->url($imageName);
+            }
+
+            
+        }
+        return response()->json([
+            'message' => 'wrong_data'
+        ], 400);     
+    }
 
 
-    public function login_as_seller(Request $request)
+    public function login(Request $request)
     {
         $credentials = $request->validate([
             'email' => 'required|string',
@@ -85,78 +153,20 @@ class AuthController extends Controller
         }
 
         $user = User::firstWhere('email', $credentials['email']);
+
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'message' => 'Wrong credentials'
             ], 400);
         }
 
-        $token = $user->createToken('API_TOKEN', ['role:seller']);
+        $userType = strtolower($user->type);
+        $token = $user->createToken('API_TOKEN', ["role:$userType"]);
 
         return response()->json([
             'message' => 'logged in successfuly',
             'user' => $user,
             'token' => $token->plainTextToken
-        ], 200);
-    }
-
-    public function login_as_customer(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => 'required|string',
-            'password' => 'required|string'
-        ]);
-
-        if (!$credentials) {
-            return response()->json([
-                'message' => 'Invalid data'
-            ], 400);
-        }
-
-        $user = User::firstWhere('email', $credentials['email']);
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'Wrong credentials'
-            ], 400);
-        }
-
-        $token = $user->createToken('API_TOKEN', ['role:customer']);
-
-        return response()->json([
-            'message' => 'logged in successfuly',
-            'user' => $user,
-            'token' => $token->plainTextToken
-        ], 200);
-    }
-
-    public function login_as_admin(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => 'required|string',
-            'password' => 'required|string'
-        ]);
-
-        if (!$credentials) {
-            return response()->json([
-                'message' => 'Invalid data'
-            ], 400);
-        }
-
-        $user = User::firstWhere('email', $credentials['email']);
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'Wrong credentials'
-            ], 400);
-        }
-
-        $token = $user->createToken('API_TOKEN', ['role:admin']);
-
-        return response()->json([
-            'message' => 'logged in successfuly',
-            'token' => $token->plainTextToken,
-            "user" => $user,
         ], 200);
     }
 
