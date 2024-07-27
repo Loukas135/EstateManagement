@@ -22,12 +22,12 @@ class Estate extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function estate_images() : HasMany
+    public function estate_images(): HasMany
     {
         return $this->hasMany(EstateImage::class);
     }
 
-    public function property_images() : HasMany
+    public function property_images(): HasMany
     {
         return $this->hasMany(PropertyImage::class);
     }

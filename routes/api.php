@@ -29,6 +29,7 @@ Route::controller(EstateController::class)->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::controller(EstateController::class)->group(function () {
         Route::post('estates/add', 'add')->middleware('role.seller');
+        Route::put('estates/{id}/sold', 'soldEstate')->middleware('role.seller');
         Route::put('estates/{id}', 'update')->middleware('role.seller');
         Route::get('seller/estates/', 'showSellerEstates')->middleware('role.seller');
         Route::delete('estates/delete/{id}', 'delete')->middleware('role.seller');

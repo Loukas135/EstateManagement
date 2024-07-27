@@ -303,9 +303,72 @@ class EstateController extends Controller
             'estates' => $estates
         ], 200);
     }
-    public function show_unapproved()
+    public function show_unapproved(Request $request)
     {
-        $estates = Estate::with(["estate_images", "property_images", "user"])->where('active', false)->get();
+        $query = Estate::query();
+
+
+        if ($request->has('q')) {
+            $searchTerm = $request->input('q');
+            $query->where(function ($query) use ($searchTerm) {
+                $query->where('description', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('city', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('street', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('title', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+
+        if ($request->has('category')) {
+            $query->where('category', $request->input('category'));
+        }
+
+        if ($request->has('city')) {
+            $query->where('city', 'like', '%' . $request->input('city') . '%');
+        }
+
+        if ($request->has('min_price')) {
+            $query->where('price', '>=', $request->input('min_price'));
+        }
+
+        if ($request->has('max_price')) {
+            $query->where('price', '<=', $request->input('max_price'));
+        }
+
+        if ($request->has('min_space')) {
+            $query->where('space', '>=', $request->input('min_space'));
+        }
+
+        if ($request->has('max_space')) {
+            $query->where('space', '<=', $request->input('max_space'));
+        }
+
+        if ($request->has('min_rooms')) {
+            $query->where('number_of_rooms', '>=', $request->input('min_rooms'));
+        }
+
+        if ($request->has('max_rooms')) {
+            $query->where('number_of_rooms', '<=', $request->input('max_rooms'));
+        }
+
+        if ($request->has('min_bathrooms')) {
+            $query->where('bathrooms', '>=', $request->input('min_bathrooms'));
+        }
+
+        if ($request->has('max_bathrooms')) {
+            $query->where('bathrooms', '<=', $request->input('max_bathrooms'));
+        }
+
+        if ($request->has('min_garages')) {
+            $query->where('garages', '>=', $request->input('min_garages'));
+        }
+
+        if ($request->has('max_garages')) {
+            $query->where('garages', '<=', $request->input('max_garages'));
+        }
+
+        $estates = $query->with(["estate_images", "property_images", "user"])->where('active', false)->get();
+
         return response()->json([
             'message' => 'success',
             'estates' => $estates

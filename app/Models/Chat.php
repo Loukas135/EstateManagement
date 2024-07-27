@@ -9,20 +9,20 @@ class Chat extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['seller_id', 'customer_id'];
+    protected $fillable = ['userOne', 'userTwo'];
 
     public function messages()
     {
         return $this->hasMany(Message::class);
     }
 
-    public function seller()
+    public function userOne()
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(User::class, 'userOne');
     }
 
-    public function customer()
+    public function userTwo()
     {
-        return $this->belongsTo(User::class, 'customer_id');
+        return $this->belongsTo(User::class, 'userTwo');
     }
 }
