@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('profile_image')->nullable();
             $table->string('id_image')->nullable();
-            $table->enum('type', ['Seller', 'Customer', 'Admin']);
+            $table->enum('type', ['Seller', 'Customer', 'Admin', 'ServiceAdmin']);
             $table->timestamps();
         });
     }

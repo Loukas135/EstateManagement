@@ -26,6 +26,7 @@ Route::controller(EstateController::class)->group(function () {
     Route::get('estates/{id}', 'get_by_id');
     Route::get('estates/', 'get_all');
 });
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::controller(EstateController::class)->group(function () {
         Route::post('estates/add', 'add')->middleware('role.seller');
@@ -36,18 +37,18 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::controller(ExtraController::class)->group(function () {
-        Route::post('extras/add', 'add')->middleware('role.admin');
+        Route::post('extras/add_work', 'add_work');
         Route::get('extras/{id}', 'get_by_id');
         Route::get('extras/', 'get_all');
         Route::put('extras/{id}', 'update')->middleware('role.admin');
     });
 });
 
+
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
-    Route::post('login_as_customer', 'login_as_customer');
-    Route::post('login_as_seller', 'login_as_seller');
-    Route::post('login_as_admin', 'login_as_admin');
+    Route::post('register_service', 'register_service');
+    Route::post('login', 'login');
     Route::post('logout', 'logout')->middleware('auth:sanctum');
 });
 

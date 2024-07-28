@@ -31,4 +31,9 @@ class Estate extends Model
     {
         return $this->hasMany(PropertyImage::class);
     }
+
+    public function category() : HasOne
+    {
+        return $this->hasOne(Category::class);
+    }
 }
