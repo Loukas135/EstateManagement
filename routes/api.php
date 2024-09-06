@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\EstateController;
 use App\Http\Controllers\ExtraController;
 use App\Http\Controllers\FilterController;
+use App\Http\Controllers\ReportController;
 use App\Models\Estate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -38,9 +40,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::controller(ExtraController::class)->group(function () {
         Route::post('extras/add_work', 'add_work');
-        Route::get('extras/{id}', 'get_by_id');
-        Route::get('extras/', 'get_all');
-        Route::put('extras/{id}', 'update')->middleware('role.admin');
+        Route::get('extras/me', 'get_me');
+        Route::delete('extras/work/{id}', 'delete_work');
+        Route::post('extras/{id}', 'update');
+    });
+
+    Route::controller(ChatController::class)->group(function () {
+        Route::get('chat/{userId}',  'getOrCreateChat');
+        Route::post('send-message',  'sendMessage');
+        Route::get('messages/{chatId}',  'fetchMessages');
+        Route::get('user-chats',  'getUserChats');
     });
 });
 
@@ -55,12 +64,28 @@ Route::controller(AuthController::class)->group(function () {
 
 Route::controller(EstateController::class)->middleware('auth:sanctum', 'role.admin')->group(function () {
     Route::put('estate/{id}/approve', 'approve');
-    Route::get('estate/show_unapproved', 'show_unapproved');
+    Route::get('estate/show_unapproved', 'showAdminEstates');
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('chat/{userId}', [ChatController::class, 'getOrCreateChat']);
-    Route::post('send-message', [ChatController::class, 'sendMessage']);
-    Route::get('messages/{chatId}', [ChatController::class, 'fetchMessages']);
-    Route::get('user-chats', [ChatController::class, 'getUserChats']);
+Route::controller(ReportController::class)->middleware('auth:sanctum', 'role.admin')->group(function () {
+    Route::get('/reports/estates',  'estateReport');
+    Route::get('/reports/users',  'userReport');
+    Route::get('/reports/works',  'workReport');
+    Route::get('/reports/custom',  'customReport');
+});
+
+
+Route::controller(CategoriesController::class)->group(function () {
+    Route::get('/categories', 'index');
+    Route::post('/categories', 'store');
+    Route::post('/categories/{id}', 'show');
+    Route::put('/categories/{id}', 'update');
+    Route::delete('/categories/{id}', 'destroy');
+    Route::get('/estate/categories', 'getEstateCategories');
+    Route::get('/extra/categories', 'getExtraCategories');
+});
+
+Route::controller(ExtraController::class)->group(function () {
+    Route::get('extras/',  'get_all');
+    Route::get('extras/{id}', 'get_by_id');
 });

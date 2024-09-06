@@ -19,6 +19,10 @@ class User extends Authenticatable
         return $this->hasMany(Estate::class);
     }
 
+    public function chats(): HasMany
+    {
+        return $this->hasMany(Chat::class);
+    }
 
     /**
      * The attributes that are mass assignable.

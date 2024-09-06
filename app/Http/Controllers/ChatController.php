@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\MessageSent;
 use App\Models\Chat;
 use App\Models\Message;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 
@@ -14,57 +15,73 @@ class ChatController extends Controller
     public function getUserChats(Request $request)
     {
         $user = $request->user('sanctum');
-
-        if ($user->type === "Seller") {
-
-            $chats = Chat::where('seller_id', $user->id)
-                ->with('customer')
-                ->get()
-                ->map(function ($chat) {
+        $chats = Chat::where('userOne', $user->id)
+            ->orWhere('userTwo', $user->id)
+            ->with('userOne', 'userTwo')
+            ->get()->map(function ($chat) use ($user) {
+                if ($chat->userOne === $user->id) {
                     return [
                         'chat_id' => $chat->id,
-                        'user' => $chat->customer
+                        'user' => User::find($chat->userTwo),
                     ];
-                });
-
-            return response()->json(["chats" => $chats]);
-        } else {
-            $chats = Chat::where('customer_id', $user->id)
-                ->with('seller')
-                ->get()
-                ->map(function ($chat) {
+                } else {
                     return [
                         'chat_id' => $chat->id,
-                        'user' => $chat->seller
+                        'user' => User::find($chat->userOne),
                     ];
-                });
+                }
+            });
+        return response()->json(["chats" => $chats]);
+        // if ($user->type === "Seller") {
 
-            return response()->json(["chats" => $chats]);
-        }
+        //     $chats = Chat::where('seller_id', $user->id)
+        //         ->with('customer')
+        //         ->get()
+        //         ->map(function ($chat) {
+        //             return [
+        //                 'chat_id' => $chat->id,
+        //                 'user' => $chat->customer
+        //             ];
+        //         });
+
+        //     return response()->json(["chats" => $chats]);
+        // } else {
+        //     $chats = Chat::where('customer_id', $user->id)
+        //         ->with('seller')
+        //         ->get()
+        //         ->map(function ($chat) {
+        //             return [
+        //                 'chat_id' => $chat->id,
+        //                 'user' => $chat->seller
+        //             ];
+        //         });
+
+        //     return response()->json(["chats" => $chats]);
+        // }
     }
 
     public function getOrCreateChat(Request $request, $userId)
     {
         $currentUser = $request->user('sanctum');
         $chat = Chat::where(function ($query) use ($userId, $currentUser) {
-            $query->where('seller_id', $currentUser->id)
-                ->where('customer_id', $userId);
+            $query->where('userOne', $currentUser->id)
+                ->where('userTwo', $userId);
         })->orWhere(function ($query) use ($userId, $currentUser) {
-            $query->where('seller_id', $userId)
-                ->where('customer_id', $currentUser->id);
+            $query->where('userOne', $userId)
+                ->where('userTwo', $currentUser->id);
         })->first();
 
         if (!$chat) {
             $chat = Chat::create([
-                'seller_id' =>  $userId,
-                'customer_id' => $currentUser->id,
+                'userOne' =>  $userId,
+                'userTwo' => $currentUser->id,
             ]);
         }
 
-        if ($currentUser->type === 'Seller') {
-            $user = $chat->customer;
+        if ($currentUser->id === $chat->userOne) {
+            $user = User::find($chat->userTwo);
         } else {
-            $user = $chat->seller;
+            $user = User::find($chat->userOne);
         }
 
         $response = [

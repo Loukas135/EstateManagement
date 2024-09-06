@@ -13,7 +13,7 @@ class EstateController extends Controller
     public function add(Request $request)
     {
         $data = $request->validate([
-            'category' => 'required|string',
+            'category_id' => 'required|string',
             'description' => 'required|string|max:255',
             'city' => 'required|string',
             'street' => 'required|string',
@@ -35,7 +35,7 @@ class EstateController extends Controller
         if ($data && $images) {
             $currentUser = $request->user();
             $newEstate = Estate::create([
-                'category' => $data['category'],
+                'category_id' => $data['category_id'],
                 'description' => $data['description'],
                 'city' => $data['city'],
                 'street' => $data['street'],
@@ -161,7 +161,7 @@ class EstateController extends Controller
             $query->where('garages', '<=', $request->input('max_garages'));
         }
 
-        $estates = $query->with("estate_images")->get();
+        $estates = $query->with("property_images")->get();
 
         return response()->json([
             'message' => 'Estates retrived succesfully',
@@ -243,6 +243,15 @@ class EstateController extends Controller
         }
 
 
+        if ($request->has('active')) {
+
+            $query->where('active', $request->input('active'));
+        }
+        if ($request->has('sold')) {
+
+            $query->where('sold', $request->input('sold'));
+        }
+
         if ($request->has('category')) {
             $query->where('category', $request->input('category'));
         }
@@ -291,20 +300,16 @@ class EstateController extends Controller
             $query->where('garages', '<=', $request->input('max_garages'));
         }
 
-        if ($request->has('active')) {
-            $query->where('active', $request->input('active'));
-        }
-        $estates = $query->with("estate_images")->get();
+        $estates = $query->with("property_images")->get();
 
         return response()->json([
             'message' => 'seller estates',
             'estates' => $estates
         ], 200);
     }
-    public function show_unapproved(Request $request)
+    public function showAdminEstates(Request $request)
     {
         $query = Estate::query();
-
 
         if ($request->has('q')) {
             $searchTerm = $request->input('q');
@@ -316,9 +321,17 @@ class EstateController extends Controller
             });
         }
 
+        if ($request->has('active')) {
+
+            $query->where('active', $request->input('active'));
+        }
+        if ($request->has('sold')) {
+
+            $query->where('sold', $request->input('sold'));
+        }
 
         if ($request->has('category')) {
-            $query->where('category', $request->input('category'));
+            $query->where('category_id', $request->input('category'));
         }
 
         if ($request->has('city')) {
@@ -365,7 +378,7 @@ class EstateController extends Controller
             $query->where('garages', '<=', $request->input('max_garages'));
         }
 
-        $estates = $query->with(["estate_images", "property_images", "user"])->where('active', false)->get();
+        $estates = $query->with(["estate_images", "property_images", "user"])->get();
 
         return response()->json([
             'message' => 'success',

@@ -45,13 +45,11 @@ class AuthController extends Controller
             $idImagePath = Storage::disk('seller_id')->url($idImageName);
         }
 
-
         if ($request->hasFile('profileImage')) {
             $profileImageName = $request->file('profileImage')->hashName();
             Storage::disk('user_profile')->put($profileImageName, file_get_contents($request->file('profileImage')));
             $profileImagePath = Storage::disk('user_profile')->url($profileImageName);
         }
-
 
         $newUser = User::create([
             'fullname' => $data['fullname'],
@@ -77,7 +75,6 @@ class AuthController extends Controller
             'email' => 'required|string',
             'password' => 'required|string|min:8',
             'profileImage' => 'image',
-            'id_image' => 'image',
             'type' => 'required|string',
 
             'category_id' => 'required',
@@ -86,56 +83,51 @@ class AuthController extends Controller
             'address' => 'required|string',
             'description' => 'required|string',
             'image'  => 'image',
-            'user_id' => 'required'
-        ]); 
-        //dd($data);
 
-        if($data){
-            $ownerData = [
+        ]);
+
+
+        if ($data) {
+
+            if ($request->hasFile('profileImage')) {
+                $profileImageName = $request->file('profileImage')->hashName();
+                Storage::disk('user_profile')->put($profileImageName, file_get_contents($request->file('profileImage')));
+                $data['profileImage'] = Storage::disk('user_profile')->url($profileImageName);
+            }
+
+            $newUser = User::create([
                 'fullname' => $data['fullname'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
-                //'profileImage' => $data['profileImage'],
-                //'id_image' => $data['id_image'],
-                'type' => $data['type'],
-            ];
-
-            $serviceData = [
-                'category_id' => $data['category_id'],
-                'name' => $data['name'],
-                'contact_number' => $data['contact_number'],
-                'address' => $data['address'],
-                'description' => $data['description'],
-                //'image' => $data['image'],
-                'user_id' => 0
-            ];
-
-            if($ownerData){
-                $newServiceOwner = User::create($ownerData);
-                
-                if($serviceData){
-                    $serviceData['user_id'] = $newServiceOwner->id;
-                    $newService = Extra::create($serviceData);
-
-                    if($newService){
-                        return response()->json([
-                            'message' => 'service_and_service_owner_created'
-                        ], 201);
-                    }
-                }
-            }
+                'profile_image' => $data['profileImage'],
+                'type' => $data['type']
+            ]);
 
             if ($request->hasFile('image')) {
-                 $imageName = $request->image->hashName();
-                 Storage::disk('extra_images')->put($imageName, file_get_contents($request->image));
-                 $data['image'] = Storage::disk('extra_images')->url($imageName);
+                $imageName = $request->image->hashName();
+                Storage::disk('extra_images')->put($imageName, file_get_contents($request->image));
+                $data['image'] = Storage::disk('extra_images')->url($imageName);
             }
+            $extra = Extra::create([
+                'name' => $data['name'],
+                'category_id' => $data['category_id'],
+                'user_id' => $newUser->id,
+                "contact_number" => $data["contact_number"],
+                'address' => $data['address'],
+                'description' => $data['description'],
+                'image' => $data['image'],
+            ]);
 
-            
+            if ($extra) {
+                return response()->json([
+                    'message' => 'Added successfuly',
+                    'data' => $extra
+                ], 200);
+            }
         }
         return response()->json([
             'message' => 'wrong_data'
-        ], 400);     
+        ], 400);
     }
 
 

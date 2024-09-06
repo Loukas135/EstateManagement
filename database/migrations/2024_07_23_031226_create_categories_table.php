@@ -17,14 +17,6 @@ return new class extends Migration
             $table->enum('cat_type', ['Estates', 'Services']);
             $table->timestamps();
         });
-
-        Schema::table('estates', function (Blueprint $table) {
-            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
-        });
-
-        Schema::table('extras', function (Blueprint $table) {
-            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
-        });
     }
 
     /**
