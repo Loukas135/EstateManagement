@@ -6,11 +6,8 @@ use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\EstateController;
 use App\Http\Controllers\ExtraController;
-use App\Http\Controllers\FilterController;
+use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\ReportController;
-use App\Models\Estate;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,19 +21,24 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
 Route::controller(EstateController::class)->group(function () {
     Route::get('estates/{id}', 'get_by_id');
     Route::get('estates/', 'get_all');
 });
 
+
 Route::middleware('auth:sanctum')->group(function () {
-    Route::controller(EstateController::class)->group(function () {
-        Route::post('estates/add', 'add')->middleware('role.seller');
-        Route::put('estates/{id}/sold', 'soldEstate')->middleware('role.seller');
-        Route::put('estates/{id}', 'update')->middleware('role.seller');
-        Route::get('seller/estates/', 'showSellerEstates')->middleware('role.seller');
-        Route::delete('estates/delete/{id}', 'delete')->middleware('role.seller');
+
+
+    Route::middleware('roles:seller')->controller(EstateController::class)->group(function () {
+        Route::post('estates/add', 'add');
+        Route::put('estates/{id}/sold', 'soldEstate');
+        Route::put('estates/{id}', 'update');
+        Route::get('seller/estates/', 'showSellerEstates');
+        Route::delete('estates/delete/{id}', 'delete');
     });
+
 
     Route::controller(ExtraController::class)->group(function () {
         Route::post('extras/add_work', 'add_work');
@@ -44,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('extras/work/{id}', 'delete_work');
         Route::post('extras/{id}', 'update');
     });
+
 
     Route::controller(ChatController::class)->group(function () {
         Route::get('chat/{userId}',  'getOrCreateChat');
@@ -62,16 +65,27 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 
-Route::controller(EstateController::class)->middleware('auth:sanctum', 'role.admin')->group(function () {
-    Route::put('estate/{id}/approve', 'approve');
-    Route::get('estate/show_unapproved', 'showAdminEstates');
-});
+Route::middleware('auth:sanctum', 'roles:admin,manager')->group(function () {
+    Route::controller(EstateController::class)->group(function () {
+        Route::put('estate/{id}/approve', 'approve');
+        Route::get('estate/show_unapproved', 'showAdminEstates');
+    });
 
-Route::controller(ReportController::class)->middleware('auth:sanctum', 'role.admin')->group(function () {
-    Route::get('/reports/estates',  'estateReport');
-    Route::get('/reports/users',  'userReport');
-    Route::get('/reports/works',  'workReport');
-    Route::get('/reports/custom',  'customReport');
+
+    Route::controller(ReportController::class)->group(function () {
+        Route::get('/reports/estates', 'estateReport');
+        Route::get('/reports/users', 'userReport');
+        Route::get('/reports/works', 'workReport');
+        Route::get('/reports/custom', 'customReport');
+    });
+
+
+    Route::controller(ManagerController::class)->group(function () {
+        Route::post('/managers', 'addManager');
+        Route::get('/managers', 'getAllManagers');
+        Route::put('/managers/{id}', 'updateManager');
+        Route::delete('/managers/{id}', 'deleteManager');
+    });
 });
 
 
@@ -85,7 +99,8 @@ Route::controller(CategoriesController::class)->group(function () {
     Route::get('/extra/categories', 'getExtraCategories');
 });
 
+
 Route::controller(ExtraController::class)->group(function () {
-    Route::get('extras/',  'get_all');
+    Route::get('extras/', 'get_all');
     Route::get('extras/{id}', 'get_by_id');
 });

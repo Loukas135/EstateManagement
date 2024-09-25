@@ -27,7 +27,7 @@ class ExtraController extends Controller
     {
         $extra = Extra::with('works', 'user', 'category')->where('user_id', $request->user()->id)->first();
         return response()->json([
-            'message' => 'Here are the extras',
+            'message' => 'Here is the extra',
             'extras' => $extra
         ], 200);
     }

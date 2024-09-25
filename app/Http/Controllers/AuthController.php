@@ -38,7 +38,7 @@ class AuthController extends Controller
         $profileImagePath = null;
         $idImagePath = null;
 
-        // Storing the seller ID image if the user type is seller
+
         if ($request->hasFile('id_image') && $data['type'] == 'Seller') {
             $idImageName = $request->file('id_image')->hashName();
             Storage::disk('seller_id')->put($idImageName, file_get_contents($request->file('id_image')));
